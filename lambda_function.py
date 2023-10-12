@@ -167,13 +167,13 @@ def ai_summarize(article_in):
     )
     return response.choices[0].message['content'].strip()
 
-
+# main function to process stories (entries) in each RSS feed (feed_url) looking for keywords
 def process_feeds(feed_urls, keywords=None):
     header = "Last 24hrs news sentiment:\n\n"
     body = ""
     counter = 0
 
-    for keyword in keywords:
+    for keyword in keywords: # we are grouping results by topic (keyword) so this is the main for loop
         print("\n\nSearch term:", "\033[1m", keyword, "\033[0m")
         body += "-----------------\n"
         body += keyword + ": \n"
@@ -181,7 +181,7 @@ def process_feeds(feed_urls, keywords=None):
         sntmt_pos = 0
         sntmt_neg = 0
         sntmt_neu = 0
-        for feed_url in feed_urls:
+        for feed_url in feed_urls: # check each entry title (ie news headline) in each feed_url (ie RSS feed) for the keywords (ie relevant topics)
             feed = feedparser.parse(feed_url['url'])
             print("Processing feed:", feed_url['source'])
                     
@@ -189,7 +189,7 @@ def process_feeds(feed_urls, keywords=None):
                 for entry in feed.entries:
                     if hasattr(entry, 'title') and hasattr(entry,'link') and hasattr(entry,'published'):
                         if not is_old(entry.published):
-                            if keyword.lower() in entry.title.lower():
+                            if keyword.lower() in entry.title.lower(): # if true, we have a match
                                 counter += 1
                                 print(entry.link)
                                 matches += entry.title + " ("
@@ -223,8 +223,6 @@ def process_feeds(feed_urls, keywords=None):
             header += sntmt
             matches += "No news\n"
             
-            
-        
         body += matches 
 
         #Prepare JSON data
@@ -233,9 +231,6 @@ def process_feeds(feed_urls, keywords=None):
         print(data)
         print(file_name + "\n")
         write_json_to_s3(bucket_name, file_name, data)
-
-
-
         print(score)
     if counter == 0:
         results += "No matching searches found today"
